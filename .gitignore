@@ -47,10 +47,15 @@ secrets/
 *.pem
 *.key
 
-# --- DVC-tracked data (the data lives on the DVC remote, not in git) ---
-/data/raw/
-/data/processed/
-/data/splits/
+# --- DVC-tracked data: ignore artifacts, keep dir structure via .gitkeep ---
+data/**/*.csv
+data/**/*.parquet
+data/**/*.png
+data/**/*.jpg
+data/**/*.jpeg
+data/**/*.npy
+data/**/*.npz
+data/**/*.arrow
 *.dvc-cache/
 
 # --- MLflow local store (use DagsHub remote in CI) ---
