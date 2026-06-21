@@ -1,0 +1,67 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+build/
+dist/
+.eggs/
+
+# --- Virtual environments ---
+venv/
+env/
+.venv/
+ENV/
+
+# --- Testing & coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# --- DVC-tracked data (the data lives on the DVC remote, not in git) ---
+/data/raw/
+/data/processed/
+/data/splits/
+*.dvc-cache/
+
+# --- MLflow local store (use DagsHub remote in CI) ---
+mlruns/
+
+# --- Model artifacts ---
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# --- Logs ---
+*.log
+logs/
