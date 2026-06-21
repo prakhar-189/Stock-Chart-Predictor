@@ -1,0 +1,45 @@
+# --------------------------------------------------------------
+# DVC-tracked hyperparameters.
+# Any stage that lists `params: - <key>` will re-run if the value
+# under that key changes. Group keys logically so unrelated edits
+# don't trigger unrelated reruns.
+# --------------------------------------------------------------
+
+data:
+  tickers:
+    - AAPL
+    - MSFT
+    - GOOGL
+    - AMZN
+    - NVDA
+    - META
+    - TSLA
+    - JPM
+    - V
+    - WMT
+  start: "2018-01-01"
+  end:   "2026-01-01"
+  interval: "1d"
+  window_size: 30        # number of candles per chart image
+  stride: 1              # slide one candle at a time
+  horizon: 5             # look 5 candles forward for the label
+  threshold: 0.02        # >+2% = up, <-2% = down, else sideways
+  train_frac: 0.7
+  val_frac:   0.15
+  test_frac:  0.15
+
+model:
+  backbone: "google/vit-base-patch16-224"
+  num_classes: 3
+  image_size: 224
+  dropout: 0.1
+
+training:
+  batch_size: 32
+  num_workers: 2
+  epochs: 8
+  learning_rate: 3.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  seed: 42
+  early_stopping_patience: 3
