@@ -1,0 +1,102 @@
+# =============================================================================
+# File        : dvc.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> DVC pipeline definition.
+#               -> Declares each reproducible stage of the project as a node
+#                  in a DAG. Re-runs are triggered automatically when a stage's
+#                  declared `deps`, `params`, or `outs` change.
+#
+#               -> Pipeline order:
+#                    load_ohlcv      -> reads static Kaggle CSV, writes parquet
+#                    label_windows   -> builds sliding-window labels
+#                    render_charts   -> rasterizes each window as a PNG
+#                    build_dataset   -> writes train/val/test CSV manifests
+#                    train           -> fine-tunes ViT, logs to MLflow
+#                    evaluate        -> scores best checkpoint on the test set
+#
+#               -> Why DVC over a plain Makefile:
+#                    deps + params hashing means re-runs only happen when the
+#                    *inputs that matter* change. This gives free incremental
+#                    rebuilds and reproducibility across machines.
+# =============================================================================
+
+stages:
+
+  load_ohlcv:
+    cmd: python -m src.data.load_ohlcv
+    deps:
+      - src/data/load_ohlcv.py
+      - data/raw/sp500_stocks.csv
+    params:
+      - data.tickers
+      - data.start
+      - data.end
+    outs:
+      - data/interim/ohlcv.parquet
+
+  label_windows:
+    cmd: python -m src.data.label_windows
+    deps:
+      - src/data/label_windows.py
+      - data/interim/ohlcv.parquet
+    params:
+      - data.window_size
+      - data.stride
+      - data.horizon
+      - data.threshold
+    outs:
+      - data/interim/windows.parquet
+
+  render_charts:
+    cmd: python -m src.data.render_charts
+    deps:
+      - src/data/render_charts.py
+      - data/interim/ohlcv.parquet
+      - data/interim/windows.parquet
+    params:
+      - model.image_size
+    outs:
+      - data/processed
+
+  build_dataset:
+    cmd: python -m src.data.build_dataset
+    deps:
+      - src/data/build_dataset.py
+      - data/interim/windows.parquet
+      - data/processed
+    params:
+      - data.train_frac
+      - data.val_frac
+      - data.test_frac
+    outs:
+      - data/splits
+
+  train:
+    cmd: python -m src.training.train
+    deps:
+      - src/training/train.py
+      - src/training/dataset.py
+      - src/models/vision_model.py
+      - data/splits
+    params:
+      - model
+      - training
+    outs:
+      - models/best.pt
+    metrics:
+      - metrics/train_metrics.json:
+          cache: false
+
+  evaluate:
+    cmd: python -m src.training.evaluate
+    deps:
+      - src/training/evaluate.py
+      - models/best.pt
+      - data/splits/test.csv
+    metrics:
+      - metrics/test_metrics.json:
+          cache: false
+    plots:
+      - metrics/confusion_matrix.csv:
+          cache: false
