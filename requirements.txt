@@ -1,0 +1,29 @@
+# --------------------------------------------------------------
+# Runtime requirements — installed inside the production Docker
+# image. Keep this list LEAN; training-only libs belong in
+# requirements-dev.txt to keep the prod image small.
+# --------------------------------------------------------------
+
+# --- Web framework & UI ---
+fastapi>=0.115
+uvicorn[standard]>=0.32
+python-multipart>=0.0.9
+gradio>=5.0
+pydantic>=2.9
+pydantic-settings>=2.5
+
+# --- Vision model (CPU-only inference in prod) ---
+torch>=2.4
+torchvision>=0.19
+transformers>=4.45
+pillow>=10.4
+numpy>=1.26
+
+# --- LLM explainer (default: Groq free tier) ---
+groq>=0.11
+
+# --- Misc ---
+python-dotenv>=1.0
+httpx>=0.27
+loguru>=0.7
+pyyaml>=6.0

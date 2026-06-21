@@ -1,0 +1,36 @@
+# --------------------------------------------------------------
+# Developer + training requirements. Includes everything in
+# requirements.txt plus the libs needed for data generation,
+# experiment tracking, testing, and notebook work.
+# --------------------------------------------------------------
+-r requirements.txt
+
+# --- Data fetch & chart rendering ---
+yfinance>=0.2.50
+mplfinance>=0.12.10
+pandas>=2.2
+pandas-ta>=0.3.14b
+matplotlib>=3.9
+seaborn>=0.13
+
+# --- Training ---
+scikit-learn>=1.5
+tqdm>=4.66
+datasets>=3.0
+accelerate>=1.0
+
+# --- Experiment tracking & data versioning ---
+mlflow>=2.17
+dvc[gdrive]>=3.55
+
+# --- Testing & linting ---
+pytest>=8.3
+pytest-cov>=5.0
+pytest-asyncio>=0.24
+ruff>=0.7
+mypy>=1.13
+pre-commit>=4.0
+
+# --- Notebooks ---
+jupyter>=1.1
+ipykernel>=6.29
