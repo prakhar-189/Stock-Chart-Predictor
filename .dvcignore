@@ -1,0 +1,18 @@
+# =============================================================================
+# File        : .dvcignore
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> Files DVC should ignore when hashing dependencies.
+#               -> Mirrors .gitignore semantics but for DVC's content-addressed
+#                  cache. Important for keeping stage hashes stable when
+#                  unrelated cache files change.
+# =============================================================================
+
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.ipynb_checkpoints
+.DS_Store
+Thumbs.db
