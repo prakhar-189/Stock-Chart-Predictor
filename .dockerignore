@@ -1,0 +1,50 @@
+# =============================================================================
+# File        : .dockerignore
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> Files excluded from Docker build contexts.
+#               -> Keeps images small and prevents secrets / large data files
+#                  from leaking into the build cache or image layers.
+# =============================================================================
+
+# Version control
+.git
+.gitignore
+.github
+
+# Python build / cache
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+
+# Virtual environments
+venv
+.venv
+env
+
+# Data and model artifacts (loaded at runtime via DVC, not baked into the image)
+data
+models
+mlruns
+metrics
+
+# Notebooks and editor
+notebooks
+.vscode
+.idea
+.ipynb_checkpoints
+
+# Secrets
+.env
+.env.*
+!.env.example
+secrets
+
+# OS
+.DS_Store
+Thumbs.db
