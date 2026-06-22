@@ -1,0 +1,36 @@
+# =============================================================================
+# File        : config/serving_config.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> Runtime configuration for the FastAPI inference server.
+#               -> Host/port, CORS, logging, rate limiting, and observability
+#                  settings — anything that affects how the API behaves at
+#                  runtime but is independent of the model itself.
+# =============================================================================
+
+server:
+  host:        0.0.0.0
+  port:        8000
+  workers:     2
+  reload:      false
+  log_level:   info
+
+cors:
+  allow_origins:     ["*"]
+  allow_methods:     ["GET", "POST"]
+  allow_headers:     ["*"]
+  allow_credentials: false
+
+rate_limit:
+  enabled:        true
+  requests_per_minute: 60
+
+observability:
+  metrics_path:        /metrics       # Prometheus scrape endpoint
+  request_id_header:   X-Request-ID
+  log_format:          "%(asctime)s %(levelname)s %(name)s | %(message)s"
+
+ui:
+  gradio_host: 0.0.0.0
+  gradio_port: 7860
+  api_base_url: http://api:8000        # used by gradio_app to call /predict
