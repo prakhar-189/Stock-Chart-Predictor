@@ -1,0 +1,37 @@
+# =============================================================================
+# File        : config/model_config.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> Runtime configuration for model loading and inference.
+#               -> Used by src/inference/predictor.py and the FastAPI app.
+#               -> Decoupled from training params.yaml so a deployed model
+#                  can be swapped (registry alias change) without retraining.
+# =============================================================================
+
+checkpoint:
+  path:          models/best.pt
+  device:        auto           # cpu | cuda | auto (auto = cuda if available)
+  half_precision: false         # fp16 for inference (cuda only)
+
+labels:
+  - up
+  - sideways
+  - down
+
+preprocessing:
+  image_size:    224
+  mean:          [0.485, 0.456, 0.406]      # ImageNet statistics
+  std:           [0.229, 0.224, 0.225]
+
+mlflow:
+  registry_uri:        http://localhost:5000
+  registered_name:     stock-chart-vit
+  registered_alias:    production
+  load_from_registry:  false                # false = local file, true = MLflow
+
+explainer:
+  enabled:        true
+  model:          gpt-5.4-nano
+  temperature:    0.2
+  max_tokens:     200
+  fallback_text:  "Explanation unavailable."
