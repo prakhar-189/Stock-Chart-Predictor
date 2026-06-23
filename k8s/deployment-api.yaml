@@ -1,0 +1,40 @@
+# =============================================================================
+# File        : k8s/deployment-api.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : FastAPI inference Deployment. Pulls the API image, mounts
+#               config + secrets, exposes 8000, and runs liveness/readiness
+#               probes against /healthz.
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: stock-chart-predictor
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: api }
+  template:
+    metadata:
+      labels: { app: api }
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/your-org/stock-chart-predictor-api:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef: { name: app-config }
+            - secretRef:    { name: app-secrets }
+          resources:
+            requests: { cpu: "500m", memory: "1Gi" }
+            limits:   { cpu: "2",    memory: "4Gi" }
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8000 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8000 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
