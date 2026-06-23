@@ -4,8 +4,8 @@
 # Date        : 2026-06-21
 # Description : -> Natural-language explainer for chart predictions.
 #               -> Given (predicted_label, confidence, candlestick stats),
-#                  asks an LLM to produce a one-paragraph rationale a human
-#                  trader would find plausible.
+#                  asks an OpenAI chat model to produce a one-paragraph
+#                  rationale a human trader would find plausible.
 #
 #               -> Pipeline position - Inference enrichment.
 #                  Called by src/inference/pipeline.py after the ViT scores
@@ -23,24 +23,41 @@
 # =============================================================================
 # Imports
 # -----------------------------------------------------------------------------
-# logging    : Standard library — logs LLM failures at WARNING before falling
-#              back to the static text. Failures must NOT crash the API.
-# os         : Standard library — reads LLM_EXPLAINER_MODEL from the env so
-#              the deployed model can be swapped without a redeploy.
-# Iterable   : Standard library typing protocol — accepts lists, tuples, or
-#              numpy arrays of prices without forcing one concrete type.
-# completion : LiteLLM's unified chat-completion function. Same call used in
-#              the LLM Regressor MLOps project (judge.py) — provider-agnostic,
-#              swap the `model` kwarg to switch from OpenAI to Anthropic, etc.
+# logging  : Standard library — logs LLM failures at WARNING before falling
+#            back to the static text. Failures must NOT crash the API.
+# os       : Standard library — reads LLM_EXPLAINER_MODEL from the env so
+#            the deployed model can be swapped without a redeploy.
+# Iterable : Standard library typing protocol — accepts lists, tuples, or
+#            numpy arrays of prices without forcing one concrete type.
+# OpenAI   : Official OpenAI Python SDK client. Reads OPENAI_API_KEY from
+#            the environment automatically; can be overridden via the
+#            constructor for testing.
 # =============================================================================
 import logging
 import os
 from typing import Iterable
 
-from litellm import completion
+from openai import OpenAI
 
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Module-level client (lazy singleton)
+# -----------------------------------------------------------------------------
+# Initialized on first use so the module can be imported in environments
+# that don't have OPENAI_API_KEY set (e.g. unit tests where the explainer
+# is disabled via config). One instance is shared across all calls.
+# =============================================================================
+_client: OpenAI | None = None
+
+
+def _get_client() -> OpenAI:
+    global _client
+    if _client is None:
+        _client = OpenAI()                          # reads OPENAI_API_KEY from env
+    return _client
 
 
 # =============================================================================
@@ -80,10 +97,11 @@ price action could justify the predicted direction. Do not hedge with
 #   horizon      : int    Forward days the label corresponds to.
 #   closes       : Iterable[float]  Closing prices in the window (oldest first).
 #   opens        : Iterable[float]  Opening prices in the window.
-#   model        : str    LiteLLM-supported model id (e.g. "gpt-4o-mini").
+#   model        : str    OpenAI model id (e.g. "gpt-4o-mini"). Defaults to
+#                         LLM_EXPLAINER_MODEL env var, then "gpt-4o-mini".
 #   temperature  : float  Low (0.2) for stable phrasing across runs.
 #   max_tokens   : int    Response cap (200 keeps it to a paragraph).
-#   fallback_text: str    Returned if the LLM call fails for any reason.
+#   fallback_text: str    Returned if the OpenAI call fails for any reason.
 #
 # Returns:
 #   str : the explanation, or `fallback_text` on failure.
@@ -125,7 +143,7 @@ def explain_prediction(
     )
 
     try:
-        result = completion(
+        result = _get_client().chat.completions.create(
             model       = model,
             messages    = [{"role": "user", "content": filled}],
             temperature = temperature,
@@ -133,5 +151,5 @@ def explain_prediction(
         )
         return result.choices[0].message.content.strip()
     except Exception as e:                          # noqa: BLE001
-        logger.warning("LLM explainer failed: %s — using fallback", e)
+        logger.warning("OpenAI explainer failed: %s — using fallback", e)
         return fallback_text
