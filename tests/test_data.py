@@ -9,6 +9,16 @@
 # =============================================================================
 
 
+# =============================================================================
+# Imports
+# -----------------------------------------------------------------------------
+# numpy / pandas             : DataFrame shaping inside individual tests.
+# build_windows_for_ticker   : Subject under test — sliding-window labeler.
+# _normalize_columns,
+# _validate                  : Internal helpers from load_ohlcv — tested
+#                              directly to keep the contract pinned (rename
+#                              the helper and the test will fail loudly).
+# =============================================================================
 import numpy as np
 import pandas as pd
 

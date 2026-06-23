@@ -8,6 +8,15 @@
 # =============================================================================
 
 
+# =============================================================================
+# Imports
+# -----------------------------------------------------------------------------
+# pathlib : Standard library — locate REPO_ROOT for path-based fixtures.
+# numpy   : Random-walk price generation for the synthetic OHLCV fixture.
+# pandas  : Assembles the fixture into the same DataFrame shape that the
+#           real pipeline emits, so tests exercise the production contract.
+# pytest  : Fixture decorator — the only public API surface this file uses.
+# =============================================================================
 from pathlib import Path
 
 import numpy  as np

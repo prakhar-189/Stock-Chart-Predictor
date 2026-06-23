@@ -8,6 +8,14 @@
 # =============================================================================
 
 
+# =============================================================================
+# Imports
+# -----------------------------------------------------------------------------
+# TestClient : Starlette's synchronous test client. Handles ASGI lifespan
+#              events (startup / shutdown) automatically, so the lifespan
+#              hook in main.py is exercised here too.
+# app        : The FastAPI application under test.
+# =============================================================================
 from fastapi.testclient import TestClient
 
 from src.api.main import app

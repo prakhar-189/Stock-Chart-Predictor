@@ -9,6 +9,15 @@
 # =============================================================================
 
 
+# =============================================================================
+# Imports
+# -----------------------------------------------------------------------------
+# pytest        : Test runner. The `slow` marker lets CI exclude this test
+#                 from the fast tier (model build downloads HF weights).
+# torch         : Builds a random pixel tensor and runs a forward pass.
+# LABELS,
+# build_model   : Subject under test — wrapper factory + label contract.
+# =============================================================================
 import pytest
 import torch
 

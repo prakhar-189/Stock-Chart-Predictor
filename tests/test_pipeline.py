@@ -9,6 +9,12 @@
 # =============================================================================
 
 
+# =============================================================================
+# Imports
+# -----------------------------------------------------------------------------
+# pandas     : Builds a synthetic windows DataFrame for the split test.
+# time_split : Subject under test — chronological split helper.
+# =============================================================================
 import pandas as pd
 
 from src.data.build_dataset import time_split
