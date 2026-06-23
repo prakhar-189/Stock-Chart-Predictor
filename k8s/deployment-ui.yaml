@@ -1,0 +1,29 @@
+# =============================================================================
+# File        : k8s/deployment-ui.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : Gradio demo Deployment. Talks to the API via cluster DNS.
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui
+  namespace: stock-chart-predictor
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ui }
+  template:
+    metadata:
+      labels: { app: ui }
+    spec:
+      containers:
+        - name: ui
+          image: ghcr.io/your-org/stock-chart-predictor-ui:latest
+          ports:
+            - containerPort: 7860
+          envFrom:
+            - configMapRef: { name: app-config }
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
