@@ -1,0 +1,27 @@
+# =============================================================================
+# File        : k8s/hpa.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : Horizontal Pod Autoscaler for the API. Scales 2-8 replicas
+#               on CPU utilization. Set up CPU-based scaling first; latency-
+#               based scaling needs a custom metrics adapter.
+# =============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+  namespace: stock-chart-predictor
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
