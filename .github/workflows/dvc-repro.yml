@@ -1,0 +1,38 @@
+# =============================================================================
+# File        : .github/workflows/dvc-repro.yml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : Re-runs the DVC pipeline on demand or weekly and pushes
+#               updated metrics + model artifacts to the DVC remote.
+# =============================================================================
+
+name: DVC Repro
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"        # 06:00 UTC every Monday
+
+jobs:
+  repro:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11", cache: pip }
+      - run: pip install -r requirements.txt 'dvc[s3]'
+      - run: pip install -e .
+      - name: Configure DVC remote
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.DVC_REMOTE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DVC_REMOTE_SECRET_ACCESS_KEY }}
+        run: |
+          dvc remote modify origin access_key_id     "$AWS_ACCESS_KEY_ID"
+          dvc remote modify origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
+      - run: dvc pull
+      - run: dvc repro
+      - run: dvc push
+      - uses: iterative/cml@v2
+      - run: |
+          dvc metrics show --md >> report.md
+          cml comment create report.md
