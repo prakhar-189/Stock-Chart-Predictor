@@ -1,0 +1,17 @@
+# =============================================================================
+# File        : k8s/service-api.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : ClusterIP service fronting the API Deployment.
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: stock-chart-predictor
+spec:
+  type: ClusterIP
+  selector: { app: api }
+  ports:
+    - port: 8000
+      targetPort: 8000
