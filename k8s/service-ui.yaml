@@ -1,0 +1,17 @@
+# =============================================================================
+# File        : k8s/service-ui.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : ClusterIP service fronting the Gradio UI Deployment.
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  namespace: stock-chart-predictor
+spec:
+  type: ClusterIP
+  selector: { app: ui }
+  ports:
+    - port: 7860
+      targetPort: 7860
