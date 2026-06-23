@@ -1,0 +1,28 @@
+# =============================================================================
+# File        : .github/workflows/ci.yml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : Continuous integration on every push and PR. Lints, type-
+#               checks, and runs the offline test suite.
+# =============================================================================
+
+name: CI
+
+on:
+  push:    { branches: [ main ] }
+  pull_request: { branches: [ main ] }
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11", cache: pip }
+      - run: pip install -r requirements-dev.txt
+      - run: pip install -e .
+      - run: ruff check src tests
+      - run: mypy src
+      - run: pytest tests --cov=src --cov-report=xml
+      - uses: codecov/codecov-action@v4
+        with: { files: coverage.xml }
