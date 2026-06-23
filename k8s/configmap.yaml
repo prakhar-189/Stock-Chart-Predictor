@@ -1,0 +1,17 @@
+# =============================================================================
+# File        : k8s/configmap.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : Non-secret runtime config mounted into the API and UI pods.
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: stock-chart-predictor
+data:
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  API_LOG_LEVEL: "INFO"
+  MLFLOW_TRACKING_URI: "http://mlflow.stock-chart-predictor.svc.cluster.local:5000"
+  API_BASE_URL: "http://api.stock-chart-predictor.svc.cluster.local:8000"
