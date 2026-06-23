@@ -1,0 +1,10 @@
+# =============================================================================
+# File        : k8s/namespace.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : Dedicated namespace for all stock-chart-predictor resources.
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stock-chart-predictor
