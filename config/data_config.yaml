@@ -1,0 +1,38 @@
+# =============================================================================
+# File        : config/data_config.yaml
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> Runtime configuration for the data layer.
+#               -> Holds settings that do NOT belong in params.yaml because
+#                  changing them should not invalidate DVC stage hashes
+#                  (e.g. file paths, source URLs, validation thresholds).
+#
+#               -> Why split from params.yaml:
+#                    params.yaml  = "things that change the model"
+#                    data_config  = "things that change *where* data lives"
+# =============================================================================
+
+paths:
+  raw_csv:        data/raw/sp500_stocks.csv
+  ohlcv_parquet:  data/interim/ohlcv.parquet
+  windows:        data/interim/windows.parquet
+  processed_root: data/processed
+  splits_dir:     data/splits
+
+source:
+  name: "S&P 500 Stocks (Kaggle, Andrew Mvd)"
+  url:  "https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks"
+  expected_columns:
+    - date
+    - symbol
+    - adj_close
+    - close
+    - high
+    - low
+    - open
+    - volume
+
+validation:
+  min_rows_per_ticker:     100      # bail early if a ticker is too sparse
+  max_null_ratio:          0.02     # >2% nulls in adj_close is suspicious
+  require_monotonic_dates: true
