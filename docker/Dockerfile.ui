@@ -1,0 +1,51 @@
+# =============================================================================
+# File        : docker/Dockerfile.ui
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> Builds the Gradio demo image.
+#               -> Same two-stage venv approach as Dockerfile.api but only
+#                  ships what gradio_app.py needs at runtime.
+#
+#               -> Runs on port 7860; talks to the API via API_BASE_URL
+#                  env var (docker-compose sets this to http://api:8000;
+#                  Kubernetes ConfigMap sets the cluster DNS name).
+# =============================================================================
+
+
+# --- Stage 1: builder ---------------------------------------------------------
+FROM python:3.11-slim AS builder
+
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /build
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt ./
+RUN pip install --upgrade pip wheel \
+    && pip install -r requirements.txt
+
+
+# --- Stage 2: runtime ---------------------------------------------------------
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /app
+
+RUN useradd --create-home --shell /bin/bash appuser
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --chown=appuser:appuser src/    ./src/
+COPY --chown=appuser:appuser config/ ./config/
+
+USER appuser
+
+EXPOSE 7860
+
+CMD ["python", "-m", "src.ui.gradio_app"]

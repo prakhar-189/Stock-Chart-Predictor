@@ -1,0 +1,65 @@
+# =============================================================================
+# File        : docker/Dockerfile.api
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> Builds the FastAPI inference image.
+#               -> Two-stage build: a "builder" image installs deps into a
+#                  virtualenv, then a slim runtime image copies the venv +
+#                  source. Final image is dominated by torch.
+#
+#               -> Image runs uvicorn against src.api.main:app on port 8000.
+#               -> Only requirements.txt is installed (not -dev) so the prod
+#                  image excludes mplfinance, pytest, mlflow, etc.
+# =============================================================================
+
+
+# --- Stage 1: builder ---------------------------------------------------------
+FROM python:3.11-slim AS builder
+
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies into an isolated venv that the runtime stage copies
+# wholesale. Keeps the runtime image free of the build-essential apt cache.
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt ./
+RUN pip install --upgrade pip wheel \
+    && pip install -r requirements.txt
+
+
+# --- Stage 2: runtime ---------------------------------------------------------
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /app
+
+# Non-root user — basic hardening for the running process.
+RUN useradd --create-home --shell /bin/bash appuser
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --chown=appuser:appuser src/            ./src/
+COPY --chown=appuser:appuser config/         ./config/
+COPY --chown=appuser:appuser params.yaml     ./
+COPY --chown=appuser:appuser pyproject.toml  ./
+
+USER appuser
+
+EXPOSE 8000
+
+# Healthcheck hits the same endpoint Kubernetes uses for liveness/readiness.
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:8000/healthz').raise_for_status()" || exit 1
+
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
