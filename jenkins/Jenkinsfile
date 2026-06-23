@@ -1,0 +1,55 @@
+// =============================================================================
+// File        : jenkins/Jenkinsfile
+// Author      : Prakhar Srivastava
+// Date        : 2026-06-21
+// Description : -> Declarative pipeline for on-prem Jenkins users.
+//               -> Mirrors the GitHub Actions CI workflow so the project
+//                  can ship in either environment without a rewrite.
+// =============================================================================
+
+pipeline {
+    agent { label 'docker' }
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        ansiColor('xterm')
+    }
+
+    environment {
+        PYTHON_VERSION = '3.11'
+    }
+
+    stages {
+
+        stage('Checkout')      { steps { checkout scm } }
+
+        stage('Setup Python')  {
+            steps {
+                sh 'python${PYTHON_VERSION} -m venv venv'
+                sh '. venv/bin/activate && pip install -r requirements-dev.txt && pip install -e .'
+            }
+        }
+
+        stage('Lint')          { steps { sh '. venv/bin/activate && ruff check src tests' } }
+
+        stage('Type check')    { steps { sh '. venv/bin/activate && mypy src' } }
+
+        stage('Test')          {
+            steps {
+                sh '. venv/bin/activate && pytest tests --cov=src --cov-report=xml'
+                junit allowEmptyResults: true, testResults: '**/junit*.xml'
+            }
+        }
+
+        stage('Build API image') {
+            steps {
+                sh 'docker build -f docker/Dockerfile.api -t stock-chart-predictor-api:${BUILD_NUMBER} .'
+            }
+        }
+    }
+
+    post {
+        always  { archiveArtifacts artifacts: 'metrics/*.json', allowEmptyArchive: true }
+        failure { mail to: 'srivastavaprakhar189@gmail.com', subject: "CI failure ${env.JOB_NAME} #${env.BUILD_NUMBER}", body: "See ${env.BUILD_URL}" }
+    }
+}
