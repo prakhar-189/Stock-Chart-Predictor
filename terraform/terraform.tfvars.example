@@ -1,0 +1,29 @@
+# =============================================================================
+# File        : terraform/terraform.tfvars.example
+# Author      : Prakhar Srivastava
+# Date        : 2026-06-21
+# Description : -> Template for required Terraform variable values.
+#               -> Copy this file to `terraform.tfvars` and replace the
+#                  placeholder values. `terraform.tfvars` is gitignored;
+#                  this example file IS committed so contributors know
+#                  which variables they need to provide.
+#
+#               -> Alternatives to using a tfvars file:
+#                    - Pass on the command line: `terraform apply -var "project_id=..."`
+#                    - Export as environment variables prefixed with TF_VAR_,
+#                      e.g. `export TF_VAR_project_id=...`
+# =============================================================================
+
+# --- REQUIRED ----------------------------------------------------------------
+# GCP project that will own every resource created by this config.
+project_id = "your-gcp-project-id"
+
+# --- OPTIONAL (defaults shown) -----------------------------------------------
+# Region for the GKE Autopilot cluster, GCS bucket, and Artifact Registry.
+# region = "us-central1"
+
+# Zone — reserved for any future zonal resources. Currently unused.
+# zone = "us-central1-a"
+
+# Naming prefix applied to every created resource. Lowercase + hyphens only.
+# name = "stock-chart-predictor"
