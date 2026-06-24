@@ -41,7 +41,6 @@ import torch.nn as nn
 import yaml
 from transformers import ViTForImageClassification, ViTImageProcessor
 
-
 logger = logging.getLogger(__name__)
 
 REPO_ROOT   = Path(__file__).resolve().parents[2]
@@ -81,10 +80,14 @@ def build_model(backbone: str | None = None, dropout: float | None = None) -> nn
 
     # The default head is a single Linear; we wrap it with dropout to combat
     # the relatively small chart dataset overfitting quickly.
+    # HF's typing for `model.classifier` resolves through nn.Module.__getattr__
+    # (returns `int | Tensor | Module`), so mypy can't verify either the
+    # Sequential swap or the in_features arg. Both ignores below match the
+    # documented HF head-replacement pattern; runtime contract is rock-solid.
     in_features = model.classifier.in_features
-    model.classifier = nn.Sequential(
+    model.classifier = nn.Sequential(  # type: ignore[assignment]
         nn.Dropout(dropout),
-        nn.Linear(in_features, len(LABELS)),
+        nn.Linear(in_features, len(LABELS)),  # type: ignore[arg-type]
     )
 
     return model

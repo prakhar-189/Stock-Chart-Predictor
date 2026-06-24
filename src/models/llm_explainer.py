@@ -35,10 +35,9 @@
 # =============================================================================
 import logging
 import os
-from typing import Iterable
+from collections.abc import Iterable
 
 from openai import OpenAI
-
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +114,7 @@ def explain_prediction(
     horizon       : int,
     closes        : Iterable[float],
     opens         : Iterable[float],
-    model         : str   = None,
+    model         : str | None = None,
     temperature   : float = 0.2,
     max_tokens    : int   = 200,
     fallback_text : str   = "Explanation unavailable.",
@@ -149,7 +148,8 @@ def explain_prediction(
             temperature = temperature,
             max_tokens  = max_tokens,
         )
-        return result.choices[0].message.content.strip()
+        content = result.choices[0].message.content
+        return content.strip() if content else fallback_text
     except Exception as e:                          # noqa: BLE001
         logger.warning("OpenAI explainer failed: %s — using fallback", e)
         return fallback_text
