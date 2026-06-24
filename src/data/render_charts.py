@@ -40,17 +40,17 @@
 # yaml                 : Parses params.yaml for model.image_size.
 # =============================================================================
 import os
+
 os.environ.setdefault("MPLBACKEND", "Agg")
 
 import logging
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from pathlib            import Path
+from pathlib import Path
 
 import matplotlib.pyplot as plt
-import pandas            as pd
+import pandas as pd
 import yaml
-
 
 logger = logging.getLogger(__name__)
 
@@ -91,10 +91,10 @@ def _render_one(
     fig, ax = plt.subplots(figsize=(image_size / 100, image_size / 100), dpi=100)
     width = 0.6
 
-    for i, (o, h, l, c) in enumerate(ohlc):
+    for i, (o, h, lo, c) in enumerate(ohlc):
         color = UP_COLOR if c >= o else DOWN_COLOR
         # Wick
-        ax.plot([i, i], [l, h], color=color, linewidth=0.8)
+        ax.plot([i, i], [lo, h], color=color, linewidth=0.8)
         # Body
         bottom, top = (o, c) if c >= o else (c, o)
         ax.add_patch(
@@ -103,7 +103,7 @@ def _render_one(
         )
 
     ax.set_xlim(-1, len(ohlc))
-    ax.set_ylim(min(l for _, _, l, _ in ohlc), max(h for _, h, _, _ in ohlc))
+    ax.set_ylim(min(lo for _, _, lo, _ in ohlc), max(h for _, h, _, _ in ohlc))
     ax.axis("off")
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
     fig.savefig(out_path, dpi=100, pad_inches=0)
@@ -141,7 +141,7 @@ def main() -> int:
         ticker_df = by_symbol[row.symbol]
         slice_df  = ticker_df.iloc[row.start_idx : row.end_idx + 1]
         ohlc      = list(zip(slice_df["open"], slice_df["high"],
-                             slice_df["low"],  slice_df["close"]))
+                             slice_df["low"],  slice_df["close"], strict=False))
         end_date_str = pd.Timestamp(row.window_end_date).strftime("%Y%m%d")
         out_path     = str(IMAGE_ROOT / row.label / f"{row.symbol}_{end_date_str}.png")
         jobs.append((ohlc, out_path, image_size))

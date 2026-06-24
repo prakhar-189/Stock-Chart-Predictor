@@ -19,10 +19,9 @@
 # =============================================================================
 from pathlib import Path
 
-import numpy  as np
+import numpy as np
 import pandas as pd
 import pytest
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,11 +35,11 @@ def synthetic_ohlcv() -> pd.DataFrame:
     rows  = []
     for sym in ["AAA", "BBB"]:
         price = 100 + np.cumsum(rng.normal(0, 1, len(dates)))
-        for d, p in zip(dates, price):
+        for d, p in zip(dates, price, strict=False):
             o = p + rng.normal(0, 0.2)
             h = max(o, p) + abs(rng.normal(0, 0.3))
-            l = min(o, p) - abs(rng.normal(0, 0.3))
+            lo = min(o, p) - abs(rng.normal(0, 0.3))
             c = p
             rows.append({"date": d, "symbol": sym, "open": o, "high": h,
-                         "low": l, "close": c, "adj_close": c, "volume": int(rng.integers(1e5, 1e6))})
+                         "low": lo, "close": c, "adj_close": c, "volume": int(rng.integers(1e5, 1e6))})
     return pd.DataFrame(rows)

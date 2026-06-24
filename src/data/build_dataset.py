@@ -29,11 +29,10 @@
 # =============================================================================
 import logging
 import sys
-from pathlib  import Path
+from pathlib import Path
 
 import pandas as pd
 import yaml
-
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +83,7 @@ def main() -> int:
     windows = pd.read_parquet(WINDOWS_PARQUET)
     windows["image_path"] = [
         _image_path(lbl, sym, dt)
-        for lbl, sym, dt in zip(windows["label"], windows["symbol"], windows["window_end_date"])
+        for lbl, sym, dt in zip(windows["label"], windows["symbol"], windows["window_end_date"], strict=False)
     ]
 
     exists  = windows["image_path"].apply(lambda p: (REPO_ROOT / p).exists())

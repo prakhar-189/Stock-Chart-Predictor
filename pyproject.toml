@@ -11,6 +11,11 @@ target-version = "py311"
 select = ["E", "F", "I", "B", "UP", "N"]
 ignore = ["E501"]  # line length handled by formatter
 
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's `File(...)` / `Form(...)` / `Depends(...)` in default args is the
+# documented framework pattern, not the anti-pattern B008 normally catches.
+"src/api/*.py" = ["B008"]
+
 [tool.ruff.format]
 quote-style = "double"
 

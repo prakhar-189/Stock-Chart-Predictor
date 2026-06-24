@@ -32,15 +32,14 @@ import logging
 import sys
 from pathlib import Path
 
-import numpy  as np
+import numpy as np
 import pandas as pd
 import torch
 import yaml
 from torch.utils.data import DataLoader
 
-from src.models.vision_model  import LABELS, load_checkpoint
-from src.training.dataset     import ChartWindowDataset
-
+from src.models.vision_model import LABELS, load_checkpoint
+from src.training.dataset import ChartWindowDataset
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +99,7 @@ def main() -> int:
             pixel_values = batch["pixel_values"].to(device)
             labels       = batch["labels"].to(device)
             preds        = model(pixel_values=pixel_values).logits.argmax(dim=-1)
-            for t, p in zip(labels.cpu().numpy(), preds.cpu().numpy()):
+            for t, p in zip(labels.cpu().numpy(), preds.cpu().numpy(), strict=False):
                 cm[t, p] += 1
             correct += (preds == labels).sum().item()
             total   += labels.size(0)
@@ -113,8 +112,8 @@ def main() -> int:
     with (METRICS_DIR / "test_metrics.json").open("w") as f:
         json.dump({"accuracy": accuracy, "macro_f1": macro_f1, "per_class": per_class}, f, indent=2)
 
-    cm_df = pd.DataFrame(cm, index=[f"true_{l}" for l in LABELS],
-                             columns=[f"pred_{l}" for l in LABELS])
+    cm_df = pd.DataFrame(cm, index=[f"true_{lbl}" for lbl in LABELS],
+                             columns=[f"pred_{lbl}" for lbl in LABELS])
     cm_df.to_csv(METRICS_DIR / "confusion_matrix.csv")
 
     logger.info("accuracy=%.4f macro_f1=%.4f", accuracy, macro_f1)

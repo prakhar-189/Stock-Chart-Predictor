@@ -43,7 +43,6 @@ from src.api.middleware import RequestIDMiddleware
 from src.api.routes import router
 from src.inference.predictor import get_predictor
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SERVING_CONFIG = REPO_ROOT / "config" / "serving_config.yaml"
 
