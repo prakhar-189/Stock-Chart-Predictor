@@ -10,9 +10,10 @@
 -r requirements.txt
 
 # --- Chart rendering & data wrangling ---
-mplfinance>=0.12.10
+# (render_charts.py uses raw matplotlib for speed; no mplfinance dependency.)
+# (pandas-ta intentionally omitted — the ViT pipeline learns from candles directly,
+#  not from hand-engineered TA indicators. Add it back if you ever build a hybrid.)
 pandas>=2.2
-pandas-ta>=0.3.14b
 matplotlib>=3.9
 seaborn>=0.13
 pyarrow>=17.0
