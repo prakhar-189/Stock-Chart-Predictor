@@ -40,7 +40,6 @@ from torch.utils.data import Dataset
 
 from src.models.vision_model import LABEL2ID, build_image_processor
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -54,7 +53,7 @@ class ChartWindowDataset(Dataset):
 
     def __init__(self, split_csv: Path, processor=None):
         self.df = pd.read_csv(split_csv)
-        self_processor = processor or build_image_processor()
+        self.processor = processor or build_image_processor()
         self.repo_root = REPO_ROOT
 
     def __len__(self) -> int:
