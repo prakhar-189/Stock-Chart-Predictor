@@ -41,7 +41,6 @@ from PIL import Image
 
 from src.models.vision_model import ID2LABEL, build_image_processor, load_checkpoint
 
-
 logger = logging.getLogger(__name__)
 
 

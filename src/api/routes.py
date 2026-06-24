@@ -42,7 +42,6 @@ from src.api.schemas import HealthResponse, PredictRequest, PredictResponse
 from src.inference.pipeline import run as run_pipeline
 from src.inference.predictor import get_predictor
 
-
 logger = logging.getLogger(__name__)
 router = APIRouter()
 

@@ -29,15 +29,14 @@
 # get_predictor        : Local — warm-loaded singleton for the ViT predictor.
 # =============================================================================
 import logging
+from collections.abc import Iterable
 from pathlib import Path
-from typing  import Iterable
 
 import yaml
 from PIL import Image
 
-from src.models.llm_explainer  import explain_prediction
-from src.inference.predictor   import get_predictor
-
+from src.inference.predictor import get_predictor
+from src.models.llm_explainer import explain_prediction
 
 logger = logging.getLogger(__name__)
 

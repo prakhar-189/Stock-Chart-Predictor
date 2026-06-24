@@ -52,12 +52,11 @@ import torch
 import torch.nn as nn
 import yaml
 from torch.optim import AdamW
-from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import LambdaLR
+from torch.utils.data import DataLoader
 
-from src.models.vision_model import build_model, LABELS
+from src.models.vision_model import LABELS, build_model
 from src.training.dataset import ChartWindowDataset
-
 
 logger = logging.getLogger(__name__)
 

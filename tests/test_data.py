@@ -19,11 +19,10 @@
 #                              directly to keep the contract pinned (rename
 #                              the helper and the test will fail loudly).
 # =============================================================================
-import numpy as np
 import pandas as pd
 
 from src.data.label_windows import build_windows_for_ticker
-from src.data.load_ohlcv    import _normalize_columns, _validate
+from src.data.load_ohlcv import _normalize_columns, _validate
 
 
 # =============================================================================

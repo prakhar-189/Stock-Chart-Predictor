@@ -41,12 +41,11 @@
 # =============================================================================
 import logging
 import sys
-from pathlib  import Path
+from pathlib import Path
 
-import numpy  as np
+import numpy as np
 import pandas as pd
 import yaml
-
 
 logger = logging.getLogger(__name__)
 
