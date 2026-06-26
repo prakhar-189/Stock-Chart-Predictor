@@ -54,6 +54,7 @@ import yaml
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from src.models.vision_model import LABELS, build_model
 from src.training.dataset import ChartWindowDataset
@@ -128,10 +129,13 @@ def main() -> int:
     train_ds = ChartWindowDataset(SPLITS_DIR / "train.csv")
     val_ds   = ChartWindowDataset(SPLITS_DIR / "val.csv")
 
+    # pin_memory is only useful when copying to a CUDA device; on CPU it
+    # wastes a copy and triggers a UserWarning.
+    pin_memory = (device == "cuda")
     train_loader = DataLoader(train_ds, batch_size=train_cfg["batch_size"],
-                              shuffle=True,  num_workers=train_cfg["num_workers"], pin_memory=True)
+                              shuffle=True,  num_workers=train_cfg["num_workers"], pin_memory=pin_memory)
     val_loader   = DataLoader(val_ds,   batch_size=train_cfg["batch_size"],
-                              shuffle=False, num_workers=train_cfg["num_workers"], pin_memory=True)
+                              shuffle=False, num_workers=train_cfg["num_workers"], pin_memory=pin_memory)
 
     model     = build_model(model_cfg["backbone"], model_cfg["dropout"]).to(device)
     optimizer = AdamW(model.parameters(), lr=train_cfg["learning_rate"],
@@ -159,7 +163,8 @@ def main() -> int:
             running_loss = 0.0
             running_correct = 0
             running_total = 0
-            for batch in train_loader:
+            pbar = tqdm(train_loader, desc=f"epoch {epoch}/{train_cfg['epochs']}", unit="batch")
+            for batch in pbar:
                 pixel_values = batch["pixel_values"].to(device)
                 labels       = batch["labels"].to(device)
 
