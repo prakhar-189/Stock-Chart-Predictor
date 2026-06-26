@@ -1,0 +1,5 @@
+outs:
+- md5: 32e5312c1da8e8aafa29aa86c3e2c3e0
+  size: 96316712
+  hash: md5
+  path: sp500_stocks.csv

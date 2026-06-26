@@ -60,6 +60,8 @@ data/**/*.arrow
 
 # --- MLflow local store (use DagsHub remote in CI) ---
 mlruns/
+mlflow.db
+mlflow.db-*
 
 # --- Model artifacts ---
 *.pt

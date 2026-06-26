@@ -1,0 +1,106 @@
+schema: '2.0'
+stages:
+  load_ohlcv:
+    cmd: python -m src.data.load_ohlcv
+    deps:
+    - path: data/raw/sp500_stocks.csv
+      hash: md5
+      md5: 32e5312c1da8e8aafa29aa86c3e2c3e0
+      size: 96316712
+    - path: src/data/load_ohlcv.py
+      hash: md5
+      md5: bdab294e1761dfaa16981964cbff5e3f
+      size: 6855
+    params:
+      params.yaml:
+        data.end: '2026-01-01'
+        data.start: '2018-01-01'
+        data.tickers:
+        - AAPL
+        - MSFT
+        - GOOGL
+        - AMZN
+        - NVDA
+        - META
+        - TSLA
+        - JPM
+        - V
+        - WMT
+    outs:
+    - path: data/interim/ohlcv.parquet
+      hash: md5
+      md5: 98e1a1ebd0a2e8e40201ddbef4bd3ad9
+      size: 486008
+  label_windows:
+    cmd: python -m src.data.label_windows
+    deps:
+    - path: data/interim/ohlcv.parquet
+      hash: md5
+      md5: 98e1a1ebd0a2e8e40201ddbef4bd3ad9
+      size: 486008
+    - path: src/data/label_windows.py
+      hash: md5
+      md5: fde8382e1d7284c338c853a28d96ef4c
+      size: 6476
+    params:
+      params.yaml:
+        data.horizon: 5
+        data.stride: 1
+        data.threshold: 0.02
+        data.window_size: 30
+    outs:
+    - path: data/interim/windows.parquet
+      hash: md5
+      md5: a17d04e97c6486a23c5b0fe1eff49221
+      size: 231708
+  render_charts:
+    cmd: python -m src.data.render_charts
+    deps:
+    - path: data/interim/ohlcv.parquet
+      hash: md5
+      md5: 98e1a1ebd0a2e8e40201ddbef4bd3ad9
+      size: 486008
+    - path: data/interim/windows.parquet
+      hash: md5
+      md5: a17d04e97c6486a23c5b0fe1eff49221
+      size: 231708
+    - path: src/data/render_charts.py
+      hash: md5
+      md5: b4462ae44eb13479eac483884350e4a0
+      size: 7038
+    params:
+      params.yaml:
+        model.image_size: 224
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 3594db3de3a706c6822352dea1e1f97e.dir
+      size: 30164480
+      nfiles: 10326
+  build_dataset:
+    cmd: python -m src.data.build_dataset
+    deps:
+    - path: data/interim/windows.parquet
+      hash: md5
+      md5: a17d04e97c6486a23c5b0fe1eff49221
+      size: 231708
+    - path: data/processed
+      hash: md5
+      md5: 3594db3de3a706c6822352dea1e1f97e.dir
+      size: 30164480
+      nfiles: 10326
+    - path: src/data/build_dataset.py
+      hash: md5
+      md5: 993d02a982090400d5b8164b267dc647
+      size: 4452
+    params:
+      params.yaml:
+        data.test_frac: 0.15
+        data.train_frac: 0.7
+        data.val_frac: 0.15
+    outs:
+    - path: data/splits
+      hash: md5
+      md5: 74cffb81dbe9aa62668db5a515a758f2.dir
+      size: 840626
+      nfiles: 3
