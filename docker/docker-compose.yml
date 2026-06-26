@@ -4,11 +4,16 @@
 # Date        : 2026-06-21
 # Description : -> Local full-stack development orchestration.
 #               -> Brings up:
-#                      api      - FastAPI inference server
-#                      ui       - Gradio demo
-#                      mlflow   - Experiment + registry server
-#                      minio    - S3-compatible artifact + DVC remote
-#                      prometheus, grafana - observability
+#                      api        - FastAPI inference server
+#                      ui         - Gradio demo
+#                      mlflow     - Experiment + (local) registry server
+#                      minio      - S3-compatible artifact backend for MLflow
+#                      prometheus - metrics scrape (targets the API)
+#                      grafana    - dashboards on top of prometheus
+#
+#               -> DVC's remote lives in Google Drive (see .env / k8s secret),
+#                  NOT in MinIO. MinIO here is exclusively MLflow's artifact
+#                  store for local runs.
 #
 #               -> `make docker-up` is the canonical entrypoint.
 # =============================================================================

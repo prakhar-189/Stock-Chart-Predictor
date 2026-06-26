@@ -2,37 +2,96 @@
 # File        : .github/workflows/dvc-repro.yml
 # Author      : Prakhar Srivastava
 # Date        : 2026-06-21
-# Description : Re-runs the DVC pipeline on demand or weekly and pushes
-#               updated metrics + model artifacts to the DVC remote.
+# Description : Re-runs the DVC pipeline on a schedule (weekly) or on demand.
+#               -> Pulls the current cache from the Google Drive remote.
+#               -> Runs the requested stages.
+#               -> Pushes updated artifacts back.
+#               -> Writes resulting metrics into the workflow run summary.
+#
+#               Defaults to running ONLY the data stages, because training
+#               the ViT on a CI runner's CPU takes 1+ hour. Trigger manually
+#               via workflow_dispatch with `stages` set to "train evaluate"
+#               (or "" for the full pipeline) to opt into retraining.
 # =============================================================================
 
 name: DVC Repro
 
 on:
   workflow_dispatch:
+    inputs:
+      stages:
+        description: "DVC stages to run (space-separated). Leave blank for the full pipeline."
+        required: false
+        default: "load_ohlcv label_windows render_charts build_dataset"
+        type: string
   schedule:
-    - cron: "0 6 * * 1"        # 06:00 UTC every Monday
+    - cron: "0 6 * * 1"            # 06:00 UTC every Monday
 
 jobs:
   repro:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+      # OMP/MKL safety knobs — mostly Windows-relevant; harmless on Linux.
+      KMP_DUPLICATE_LIB_OK: "TRUE"
+      OMP_NUM_THREADS: "1"
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: { python-version: "3.11", cache: pip }
-      - run: pip install -r requirements.txt 'dvc[s3]'
-      - run: pip install -e .
-      - name: Configure DVC remote
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Configure DVC GDrive remote (service-account auth)
         env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.DVC_REMOTE_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DVC_REMOTE_SECRET_ACCESS_KEY }}
+          SA_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          DVC_GDRIVE_FOLDER_ID: ${{ vars.DVC_GDRIVE_FOLDER_ID }}
         run: |
-          dvc remote modify origin access_key_id     "$AWS_ACCESS_KEY_ID"
-          dvc remote modify origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
-      - run: dvc pull
-      - run: dvc repro
-      - run: dvc push
-      - uses: iterative/cml@v2
-      - run: |
-          dvc metrics show --md >> report.md
-          cml comment create report.md
+          SA_PATH="$RUNNER_TEMP/sa.json"
+          printf '%s' "$SA_JSON" > "$SA_PATH"
+          chmod 600 "$SA_PATH"
+          dvc remote add -d origin "gdrive://$DVC_GDRIVE_FOLDER_ID" --force
+          dvc remote modify origin gdrive_use_service_account true
+          dvc remote modify origin gdrive_service_account_json_file_path "$SA_PATH"
+
+      - name: Pull data from DVC remote
+        run: dvc pull
+
+      - name: Reproduce pipeline
+        run: |
+          STAGES="${{ inputs.stages }}"
+          if [ -z "$STAGES" ]; then
+            echo "No stages specified — running the full pipeline."
+            dvc repro
+          else
+            echo "Reproducing stages: $STAGES"
+            dvc repro $STAGES
+          fi
+
+      - name: Push artifacts to DVC remote
+        run: dvc push
+
+      - name: Write metrics to run summary
+        if: success()
+        run: |
+          {
+            echo "## DVC pipeline metrics"
+            echo ""
+            dvc metrics show --md 2>/dev/null || echo "_No metrics file emitted by this run._"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload metrics artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dvc-metrics-${{ github.run_number }}
+          path: metrics/
+          if-no-files-found: ignore
+          retention-days: 30

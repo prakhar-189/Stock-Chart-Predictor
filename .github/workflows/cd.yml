@@ -2,8 +2,16 @@
 # File        : .github/workflows/cd.yml
 # Author      : Prakhar Srivastava
 # Date        : 2026-06-21
-# Description : Continuous deployment. On a tag push, builds and publishes
-#               the API and UI images to GHCR, then triggers a GKE rollout.
+# Description : Continuous deployment. On a version tag push, builds the API
+#               and UI images and publishes them to GHCR with two tags each:
+#               the version (e.g. v0.3.1) and `latest`. Adds Buildx caching
+#               so re-runs of unchanged stages take seconds, not minutes.
+#
+#               -> Triggering: push a tag like `v0.3.1`.
+#               -> Secrets required: only the auto-provided GITHUB_TOKEN.
+#               -> Downstream rollout to GKE is intentionally left to a
+#                  manual `scripts/deploy_gke.sh` so the workflow doesn't
+#                  need cluster credentials.
 # =============================================================================
 
 name: CD
@@ -18,20 +26,35 @@ jobs:
     permissions: { contents: read, packages: write }
     steps:
       - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+
+      - name: Build & push API image
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile.api
           push: true
-          tags: ghcr.io/${{ github.repository }}-api:${{ github.ref_name }}
-      - uses: docker/build-push-action@v6
+          tags: |
+            ghcr.io/${{ github.repository }}-api:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}-api:latest
+          cache-from: type=gha,scope=api
+          cache-to:   type=gha,scope=api,mode=max
+
+      - name: Build & push UI image
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile.ui
           push: true
-          tags: ghcr.io/${{ github.repository }}-ui:${{ github.ref_name }}
+          tags: |
+            ghcr.io/${{ github.repository }}-ui:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}-ui:latest
+          cache-from: type=gha,scope=ui
+          cache-to:   type=gha,scope=ui,mode=max

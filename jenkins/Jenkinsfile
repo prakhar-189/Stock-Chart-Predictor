@@ -16,7 +16,16 @@ pipeline {
     }
 
     environment {
-        PYTHON_VERSION = '3.11'
+        PYTHON_VERSION       = '3.11'
+        // Same env-var hygiene as the GitHub Actions CI workflow — these
+        // prevent OMP/MKL DLL conflicts that occasionally surface on
+        // diverse Jenkins agent OS combinations.
+        KMP_DUPLICATE_LIB_OK = 'TRUE'
+        OMP_NUM_THREADS      = '1'
+        // pyproject.toml is tooling-only (not a build spec) so the
+        // package is NOT pip-installed; pytest needs PYTHONPATH to
+        // resolve `from src.X import Y`.
+        PYTHONPATH           = "${WORKSPACE}"
     }
 
     stages {
@@ -26,13 +35,13 @@ pipeline {
         stage('Setup Python')  {
             steps {
                 sh 'python${PYTHON_VERSION} -m venv venv'
-                sh '. venv/bin/activate && pip install -r requirements-dev.txt && pip install -e .'
+                sh '. venv/bin/activate && pip install -r requirements-dev.txt'
             }
         }
 
         stage('Lint')          { steps { sh '. venv/bin/activate && ruff check src tests' } }
 
-        stage('Type check')    { steps { sh '. venv/bin/activate && mypy src' } }
+        stage('Type check')    { steps { sh '. venv/bin/activate && mypy src --ignore-missing-imports' } }
 
         stage('Test')          {
             steps {
