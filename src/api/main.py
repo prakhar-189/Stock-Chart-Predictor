@@ -62,9 +62,9 @@ logging.getLogger("huggingface_hub.utils._http").setLevel(logging.ERROR)
 warnings.filterwarnings("ignore", message=".*HF_TOKEN.*")
 warnings.filterwarnings("ignore", message=".*unauthenticated requests.*")
 
-from src.api.middleware import RequestIDMiddleware                    # noqa: E402
-from src.api.routes import router                                     # noqa: E402
-from src.inference.predictor import get_predictor                     # noqa: E402
+from src.api.middleware import RequestIDMiddleware                    # noqa: E402, I001
+from src.api.routes import router                                     # noqa: E402, I001
+from src.inference.predictor import get_predictor                     # noqa: E402, I001
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SERVING_CONFIG = REPO_ROOT / "config" / "serving_config.yaml"
