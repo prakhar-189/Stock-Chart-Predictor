@@ -114,7 +114,10 @@ def build_image_processor(backbone: str | None = None) -> ViTImageProcessor:
 # =============================================================================
 def load_checkpoint(checkpoint_path: Path, device: str = "cpu") -> nn.Module:
     model = build_model()
-    state = torch.load(checkpoint_path, map_location=device)
+    # mmap=True memory-maps the checkpoint instead of loading it into a single
+    # contiguous RAM block. Prevents allocation failures on fragmented memory
+    # (common after long Windows uptime) and lowers peak resident memory.
+    state = torch.load(checkpoint_path, map_location=device, mmap=True)
     model.load_state_dict(state, strict=True)
     model.eval()
     model.to(device)
