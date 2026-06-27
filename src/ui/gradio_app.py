@@ -38,10 +38,30 @@ from pathlib import Path
 import gradio as gr
 import requests
 import yaml
+from dotenv import load_dotenv
 from PIL import Image
+
+# Load .env at module import so API_BASE_URL (and any other env override)
+# is visible to the rest of the process. Local dev convenience; in Docker /
+# Kubernetes the env vars come from the orchestrator and load_dotenv is a no-op.
+load_dotenv()
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SERVING_CONFIG = REPO_ROOT / "config" / "serving_config.yaml"
+
+# Sample price series pre-populated into the Gradio form so the demo
+# is "click Predict and see it work" with no manual data entry.
+# 30 closes + 30 opens corresponding to a fictional drift-with-noise window.
+SAMPLE_CLOSES = (
+    "135.0,135.5,136.2,135.8,136.5,137.0,137.5,138.0,137.8,138.5,"
+    "139.0,139.5,140.0,139.8,140.5,141.0,141.5,142.0,141.8,142.5,"
+    "143.0,143.5,144.0,143.8,144.5,145.0,145.5,146.0,145.8,146.5"
+)
+SAMPLE_OPENS = (
+    "134.8,135.2,135.9,135.5,136.2,136.7,137.2,137.7,137.5,138.2,"
+    "138.7,139.2,139.7,139.5,140.2,140.7,141.2,141.7,141.5,142.2,"
+    "142.7,143.2,143.7,143.5,144.2,144.7,145.2,145.7,145.5,146.2"
+)
 
 def _load_cfg() -> dict:
     with SERVING_CONFIG.open() as f:
@@ -107,8 +127,8 @@ def build_demo() -> gr.Blocks:
                 end_date = gr.Textbox(label="End date (YYYY-MM-DD)", value="2025-12-31")
                 window_size = gr.Number(label="Window size",  value=30, precision=0)
                 horizon = gr.Number(label="Horizon (days)", value=5, precision=0)
-                closes_csv = gr.Textbox(label="Closes (comma-separated, oldest first)")
-                opens_csv = gr.Textbox(label="Opens  (comma-separated, oldest first)")
+                closes_csv = gr.Textbox(label="Closes (comma-separated, oldest first)", value=SAMPLE_CLOSES)
+                opens_csv  = gr.Textbox(label="Opens  (comma-separated, oldest first)", value=SAMPLE_OPENS)
                 btn = gr.Button("Predict", variant="primary")
             with gr.Column():
                 label_out = gr.Label(label="Prediction")
