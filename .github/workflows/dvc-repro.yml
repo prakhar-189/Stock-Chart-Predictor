@@ -37,6 +37,9 @@ jobs:
       # OMP/MKL safety knobs — mostly Windows-relevant; harmless on Linux.
       KMP_DUPLICATE_LIB_OK: "TRUE"
       OMP_NUM_THREADS: "1"
+      # HuggingFace auth — authenticates ViT downloads so CI gets the higher
+      # rate limit tier and the unauthenticated-request warning goes away.
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4

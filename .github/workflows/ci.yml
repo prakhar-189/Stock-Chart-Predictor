@@ -25,5 +25,7 @@ jobs:
       - run: pytest tests --cov=src --cov-report=xml
         env:
           PYTHONPATH: ${{ github.workspace }}
+          # HuggingFace auth for test_model / test_api which trigger ViT downloads.
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
       - uses: codecov/codecov-action@v4
         with: { files: coverage.xml }
