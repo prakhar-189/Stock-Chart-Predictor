@@ -84,6 +84,20 @@ price action could justify the predicted direction. Do not hedge with
 "may", "might", or disclaimers. Do not output bullet points or headings."""
 
 
+# Used when the caller doesn't pass enough price data to compute window stats
+# (e.g. a Gradio demo where the user only uploads the chart and label fields).
+EXPLAIN_TEMPLATE_BASIC = """You are a concise technical-analysis assistant.
+
+A vision model has examined a {window_size}-day candlestick chart for
+ticker {symbol} ending {end_date} and predicted "{prediction}" (model
+confidence {confidence:.0%}) for the {horizon}-day forward direction.
+
+Write 2-3 sentences in plain English explaining what type of candlestick
+pattern typically supports this prediction in a {window_size}-day window.
+Do not hedge with "may", "might", or disclaimers. Do not output bullet
+points or headings."""
+
+
 # =============================================================================
 # explain_prediction
 # -----------------------------------------------------------------------------
@@ -125,28 +139,44 @@ def explain_prediction(
     closes_list = list(closes)
     opens_list  = list(opens)
 
-    filled = EXPLAIN_TEMPLATE.format(
-        symbol        = symbol,
-        end_date      = end_date,
-        prediction    = prediction,
-        confidence    = confidence,
-        window_size   = window_size,
-        horizon       = horizon,
-        open_min      = min(opens_list),
-        open_max      = max(opens_list),
-        close_min     = min(closes_list),
-        close_max     = max(closes_list),
-        last_close    = closes_list[-1],
-        first_close   = closes_list[0],
-        window_return = (closes_list[-1] / closes_list[0]) - 1.0,
-    )
+    # Pick the rich template only when we have enough data to fill its slots.
+    # The basic template asks the LLM to reason from the label alone, so the
+    # API still produces a sensible explanation when the caller (e.g. the
+    # Gradio demo) leaves the price fields empty.
+    has_prices = len(closes_list) >= 2 and len(opens_list) >= 1
 
     try:
+        if has_prices:
+            filled = EXPLAIN_TEMPLATE.format(
+                symbol        = symbol,
+                end_date      = end_date,
+                prediction    = prediction,
+                confidence    = confidence,
+                window_size   = window_size,
+                horizon       = horizon,
+                open_min      = min(opens_list),
+                open_max      = max(opens_list),
+                close_min     = min(closes_list),
+                close_max     = max(closes_list),
+                last_close    = closes_list[-1],
+                first_close   = closes_list[0],
+                window_return = (closes_list[-1] / closes_list[0]) - 1.0,
+            )
+        else:
+            filled = EXPLAIN_TEMPLATE_BASIC.format(
+                symbol      = symbol,
+                end_date    = end_date,
+                prediction  = prediction,
+                confidence  = confidence,
+                window_size = window_size,
+                horizon     = horizon,
+            )
+
         result = _get_client().chat.completions.create(
-            model       = model,
-            messages    = [{"role": "user", "content": filled}],
-            temperature = temperature,
-            max_tokens  = max_tokens,
+            model                 = model,
+            messages              = [{"role": "user", "content": filled}],
+            temperature           = temperature,
+            max_completion_tokens = max_tokens,    # OpenAI replaced max_tokens for newer models
         )
         content = result.choices[0].message.content
         return content.strip() if content else fallback_text

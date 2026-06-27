@@ -31,17 +31,40 @@
 #                        and avoid a 5s cold start on the first /predict.
 # =============================================================================
 import logging
+import os
+import warnings
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import yaml
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import make_asgi_app
 
-from src.api.middleware import RequestIDMiddleware
-from src.api.routes import router
-from src.inference.predictor import get_predictor
+# Load .env at module import so OPENAI_API_KEY (and any other override) is
+# visible to the predictor and explainer. In Docker / Kubernetes the env
+# vars come from the orchestrator and load_dotenv is a no-op.
+load_dotenv()
+
+# Quiet noisy third-party loggers so the startup output is clean. HF hub auth
+# warnings, transformers advisory warnings, every httpx HEAD probe, and HF
+# progress bars all clutter the screen without adding signal. Set BEFORE the
+# predictor imports so transformers picks up the verbosity env vars at load.
+os.environ.setdefault("TRANSFORMERS_VERBOSITY",            "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS",      "1")
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
+logging.getLogger("huggingface_hub.utils._http").setLevel(logging.ERROR)
+# Suppress the HF_TOKEN advisory that's emitted via warnings.warn() (not the
+# logging module) — it slips past the loggers above.
+warnings.filterwarnings("ignore", message=".*HF_TOKEN.*")
+warnings.filterwarnings("ignore", message=".*unauthenticated requests.*")
+
+from src.api.middleware import RequestIDMiddleware                    # noqa: E402
+from src.api.routes import router                                     # noqa: E402
+from src.inference.predictor import get_predictor                     # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SERVING_CONFIG = REPO_ROOT / "config" / "serving_config.yaml"

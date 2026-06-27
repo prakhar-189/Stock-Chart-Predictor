@@ -83,22 +83,28 @@ def run(
     prediction = predictor.predict(image)
 
     explainer_cfg = _load_explainer_cfg()
+    explanation = ""
     if explainer_cfg.get("enabled", False):
-        explanation = explain_prediction(
-            prediction    = prediction["label"],
-            confidence    = prediction["confidence"],
-            symbol        = symbol,
-            end_date      = end_date,
-            window_size   = window_size,
-            horizon       = horizon,
-            closes        = closes,
-            opens         = opens,
-            model         = explainer_cfg.get("model"),
-            temperature   = explainer_cfg.get("temperature", 0.2),
-            max_tokens    = explainer_cfg.get("max_tokens", 200),
-            fallback_text = explainer_cfg.get("fallback_text", "Explanation unavailable."),
-        )
-    else:
-        explanation = ""
+        # The explainer is decoration — never let it sink the prediction.
+        # Any unexpected error here degrades to an empty explanation so
+        # the API still returns a clean PredictResponse.
+        try:
+            explanation = explain_prediction(
+                prediction    = prediction["label"],
+                confidence    = prediction["confidence"],
+                symbol        = symbol,
+                end_date      = end_date,
+                window_size   = window_size,
+                horizon       = horizon,
+                closes        = closes,
+                opens         = opens,
+                model         = explainer_cfg.get("model"),
+                temperature   = explainer_cfg.get("temperature", 0.2),
+                max_tokens    = explainer_cfg.get("max_tokens", 200),
+                fallback_text = explainer_cfg.get("fallback_text", "Explanation unavailable."),
+            )
+        except Exception as e:                       # noqa: BLE001
+            logger.warning("explainer raised: %s — returning empty explanation", e)
+            explanation = ""
 
     return {**prediction, "explanation": explanation}
