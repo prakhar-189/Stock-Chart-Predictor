@@ -104,3 +104,72 @@ stages:
       md5: 74cffb81dbe9aa62668db5a515a758f2.dir
       size: 840626
       nfiles: 3
+  train:
+    cmd: python -m src.training.train
+    deps:
+    - path: data/splits
+      hash: md5
+      md5: 74cffb81dbe9aa62668db5a515a758f2.dir
+      size: 840626
+      nfiles: 3
+    - path: src/models/vision_model.py
+      hash: md5
+      md5: 24be483c05da6e93912ed5825e0920f8
+      size: 5885
+    - path: src/training/dataset.py
+      hash: md5
+      md5: 762de7a45d084c130ce6933dfcd30948
+      size: 3663
+    - path: src/training/train.py
+      hash: md5
+      md5: db24a2bdbcc52ea3317a219878e6220f
+      size: 11039
+    params:
+      params.yaml:
+        model:
+          backbone: google/vit-base-patch16-224
+          num_classes: 3
+          image_size: 224
+          dropout: 0.1
+        training:
+          batch_size: 8
+          num_workers: 0
+          epochs: 2
+          learning_rate: 3e-05
+          weight_decay: 0.01
+          warmup_ratio: 0.1
+          seed: 42
+          early_stopping_patience: 3
+    outs:
+    - path: metrics/train_metrics.json
+      hash: md5
+      md5: 2f1fb1cf33cde488a7ad3694117170f4
+      size: 510
+    - path: models/best.pt
+      hash: md5
+      md5: a35ec57feae7dfdc48b4cd3e1e4c5e3b
+      size: 343260805
+  evaluate:
+    cmd: python -m src.training.evaluate
+    deps:
+    - path: data/splits/test.csv
+      hash: md5
+      md5: 1af20993cea45f74b3a8e496ff85092c
+      size: 126359
+    - path: models/best.pt
+      hash: md5
+      md5: a35ec57feae7dfdc48b4cd3e1e4c5e3b
+      size: 343260805
+    - path: src/training/evaluate.py
+      hash: md5
+      md5: f3780aea9be1e9bbbc69c6c001bf2e9b
+      size: 5461
+    outs:
+    - path: metrics/confusion_matrix.csv
+      hash: md5
+      md5: 5f1db2fb8349568d7dc3abb7727871ee
+      size: 97
+    - path: metrics/test_metrics.json
+      hash: md5
+      md5: 3b7a64b68a10a156f68354f793ce0c20
+      size: 453
