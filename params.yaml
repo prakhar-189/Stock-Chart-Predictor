@@ -37,7 +37,7 @@ model:
 training:
   batch_size: 8
   num_workers: 0        # Windows: spawned DataLoader workers crash with PIL — keep at 0 for local CPU runs
-  epochs: 1
+  epochs: 2             # 1 was undertrained (down-class collapse); 2 with class weights restores balance
   learning_rate: 3.0e-5
   weight_decay: 0.01
   warmup_ratio: 0.1

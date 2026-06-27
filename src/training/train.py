@@ -27,6 +27,9 @@
 # logging             : Standard library — per-epoch progress logs.
 # math                : Standard library — ceil() for steps_per_epoch.
 # sys                 : Standard library — exit code from main().
+# Counter             : Standard library — tallies class frequencies in the
+#                       training manifest so we can derive inverse-frequency
+#                       weights for CrossEntropyLoss.
 # pathlib             : Standard library — checkpoint and metric paths.
 # mlflow              : Experiment tracking. Logs hyperparams, per-epoch
 #                       metrics, and the best checkpoint as an artifact.
@@ -45,6 +48,7 @@ import json
 import logging
 import math
 import sys
+from collections import Counter
 from pathlib import Path
 
 import mlflow
@@ -129,6 +133,22 @@ def main() -> int:
     train_ds = ChartWindowDataset(SPLITS_DIR / "train.csv")
     val_ds   = ChartWindowDataset(SPLITS_DIR / "val.csv")
 
+    # ----------------------------------------------------------------
+    # Class weights for imbalanced training set.
+    # Without this, the model defaults to predicting majority classes
+    # and the "down" class collapses to near-zero recall. Inverse-frequency
+    # weighting normalized by the number of classes:
+    #     weight_c = N / (K * n_c)
+    # where N = train rows, K = num classes, n_c = count of class c.
+    # ----------------------------------------------------------------
+    label_counts  = Counter(train_ds.df["label"])
+    class_weights = torch.tensor(
+        [len(train_ds) / (len(LABELS) * label_counts[c]) for c in LABELS],
+        dtype=torch.float,
+        device=device,
+    )
+    logger.info("class weights: %s", dict(zip(LABELS, class_weights.tolist(), strict=False)))
+
     # pin_memory is only useful when copying to a CUDA device; on CPU it
     # wastes a copy and triggers a UserWarning.
     pin_memory = (device == "cuda")
@@ -145,7 +165,7 @@ def main() -> int:
     total_steps     = steps_per_epoch * train_cfg["epochs"]
     warmup_steps    = int(total_steps * train_cfg["warmup_ratio"])
     scheduler       = _linear_warmup_decay(optimizer, warmup_steps, total_steps)
-    loss_fn         = nn.CrossEntropyLoss()
+    loss_fn         = nn.CrossEntropyLoss(weight=class_weights)
 
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     METRICS_DIR.mkdir(parents=True, exist_ok=True)
@@ -153,6 +173,8 @@ def main() -> int:
     mlflow.set_experiment("stock-chart-predictor")
     with mlflow.start_run():
         mlflow.log_params({**train_cfg, **{f"model.{k}": v for k, v in model_cfg.items()}})
+        mlflow.log_params({f"class_weight.{lbl}": float(w)
+                           for lbl, w in zip(LABELS, class_weights.tolist(), strict=False)})
 
         best_val_loss = float("inf")
         epochs_since_improve = 0
