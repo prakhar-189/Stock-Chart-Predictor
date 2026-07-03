@@ -32,8 +32,6 @@ Description : Portfolio landing page for the stock-chart-predictor project.
 
 https://github.com/user-attachments/assets/REPLACE-WITH-APP-DEMO-MP4-URL
 
-*(Upload `docs/App Demo.mp4` as a GitHub asset and paste the URL here — see "Embedding videos" at the bottom.)*
-
 ---
 
 ## Use case
