@@ -268,3 +268,9 @@ Result: videos play inline in the README with zero repo bloat.
 ## License
 
 See [LICENSE](LICENSE).
+
+---
+
+## 👤 Author
+- Prakhar Srivastava
+- Data Scientist, Business Analyst & AI Engineer | Machine Learning, Deep Learning & AI Automation Enthusiast
