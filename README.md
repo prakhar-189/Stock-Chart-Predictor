@@ -13,6 +13,7 @@ Description : Portfolio landing page for the stock-chart-predictor project.
 
 # stock-chart-predictor
 
+[![Live Demo on HuggingFace Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20Demo-HuggingFace%20Spaces-FFD21E)](https://huggingface.co/spaces/PrakharDS-12321/Stock-Chart-Predictor)
 ![CI](https://github.com/prakhar-189/stock-chart-predictor/actions/workflows/ci.yml/badge.svg)
 ![CD](https://github.com/prakhar-189/stock-chart-predictor/actions/workflows/cd.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
@@ -28,10 +29,24 @@ Description : Portfolio landing page for the stock-chart-predictor project.
 
 ---
 
-## Demo
+## 🚀 Live demo
+
+**[Try it on Hugging Face Spaces →](https://huggingface.co/spaces/PrakharDS-12321/Stock-Chart-Predictor)**
+
+Upload a candlestick chart → get a directional prediction with class probabilities and an LLM-generated technical-analysis explanation. Runs on CPU, free-tier hosted, no signup required.
+
+![Live demo on Hugging Face Spaces](docs/Live%20HuggingFace%20Demo.png)
+
+*The deployed Space uses a simplified single-file `app.py` that loads the trained checkpoint directly (see the [Space repo](https://huggingface.co/spaces/PrakharDS-12321/Stock-Chart-Predictor/tree/main)). The full FastAPI + Gradio + observability architecture described below is the local / production stack.*
+
+<details>
+<summary>Original short demo video (click to expand)</summary>
 
 https://github.com/user-attachments/assets/REPLACE-WITH-APP-DEMO-MP4-URL
 
+*(Upload `docs/App Demo.mp4` as a GitHub asset and paste the URL here — see "Embedding videos" at the bottom.)*
+
+</details>
 ---
 
 ## Use case
@@ -205,6 +220,8 @@ Then open:
 - API docs:    http://localhost:8000/docs
 - Gradio demo: http://localhost:7860
 - MLflow UI:   `mlflow ui` → http://localhost:5000
+
+**Or skip the local setup entirely and use the [live demo on Hugging Face Spaces](https://huggingface.co/spaces/PrakharDS-12321/Stock-Chart-Predictor).**
 
 ---
 
