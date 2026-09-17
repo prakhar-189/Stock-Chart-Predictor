@@ -102,6 +102,8 @@ The DVC DAG defines six reproducible stages from raw CSV to trained model:
 load_ohlcv → label_windows → render_charts → build_dataset → train → evaluate
 ```
 
+---
+
 ## Results
 
 Single-run honest reporting from the held-out chronological test set.
@@ -117,7 +119,7 @@ Single-run honest reporting from the held-out chronological test set.
 | down     | 0.00 | 0.00 | 0.00 |
 | **Macro** | – | – | **0.27** |
 
-**Test accuracy: 0.40** (vs. 0.33 random baseline for three classes)
+**Test accuracy: 0.40** (vs. 0.33 uniform-random baseline and 0.38 majority-class baseline, i.e. always predicting "up")
 
 ### Confusion matrix
 
@@ -131,7 +133,7 @@ This project is a **DLOps demonstration**, not an alpha-generating signal.
 - The down class collapsed at 0.0 recall — class weighting helped marginally; the real fix is freezing the backbone or migrating training to GPU
 - The pipeline, reproducibility, and operational story are the actual portfolio value, not the headline accuracy
 
-A reviewer with finance / ML background should recognize the engineering depth and treat the modest metrics as the deliberate scope choice they are.
+**Next steps:** train on GPU for more epochs, compare against a majority-class baseline and a non-image model (e.g. gradient boosting on raw OHLCV returns), and try volatility-adjusted labels instead of a fixed ±2% threshold.
 
 ---
 
