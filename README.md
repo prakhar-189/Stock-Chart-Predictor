@@ -39,14 +39,6 @@ Upload a candlestick chart → get a directional prediction with class probabili
 
 *The deployed Space uses a simplified single-file `app.py` that loads the trained checkpoint directly (see the [Space repo](https://huggingface.co/spaces/PrakharDS-12321/Stock-Chart-Predictor/tree/main)). The full FastAPI + Gradio + observability architecture described below is the local / production stack.*
 
-<details>
-<summary>Original short demo video (click to expand)</summary>
-
-https://github.com/user-attachments/assets/REPLACE-WITH-APP-DEMO-MP4-URL
-
-*(Upload `docs/App Demo.mp4` as a GitHub asset and paste the URL here — see "Embedding videos" at the bottom.)*
-
-</details>
 ---
 
 ## Use case
@@ -257,20 +249,6 @@ Then open:
 ├── params.yaml           # DVC-tracked hyperparameters
 └── dvc.yaml              # DVC pipeline definition
 ```
-
----
-
-## Embedding videos (one-time setup)
-
-The two videos referenced in this README (`docs/App Demo.mp4` and `docs/DVC-Dag.mp4`) are too large to embed via relative path. To make them playable inline:
-
-1. Open a **draft issue** in this repo (don't submit)
-2. Drag-and-drop each MP4 into the comment box
-3. GitHub uploads and gives you a `https://github.com/user-attachments/assets/...` URL
-4. Replace the `REPLACE-WITH-...-MP4-URL` placeholders in this README with those URLs
-5. Cancel the draft
-
-Result: videos play inline in the README with zero repo bloat.
 
 ---
 
