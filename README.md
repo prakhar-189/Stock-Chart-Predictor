@@ -110,12 +110,6 @@ The DVC DAG defines six reproducible stages from raw CSV to trained model:
 load_ohlcv → label_windows → render_charts → build_dataset → train → evaluate
 ```
 
-https://github.com/user-attachments/assets/REPLACE-WITH-DVC-DAG-MP4-URL
-
-*(Upload `docs/DVC-Dag.mp4` as a GitHub asset and paste the URL here.)*
-
----
-
 ## Results
 
 Single-run honest reporting from the held-out chronological test set.
